@@ -1,53 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 import base64
-from database import SessionLocal, engine, Base
-from models import  Item as ItemModel  # Modelos de SQLAlchemy
-from schemas import ItemCreate, Item as ItemSchema, PaginatedItems  # Esquemas Pydantic
 from database import get_db
+from models import Item as ItemModel, User as UserModel
+from schemas import Item as ItemSchema, PaginatedItems
 
 items_router = APIRouter()
 
+# Dependencia para verificar admin
+def get_current_admin(user_id: int = Depends(lambda x: int(x.headers.get('user-id', '0'))), db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user
 
-
-# Endpoints para Items
+# Crear un ítem
 @items_router.post("/items/", response_model=ItemSchema, tags=["items"])
 async def create_item(
     name: str,
     description: Optional[str] = None,
     price: float = 0.0,
     img: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_admin: UserModel = Depends(get_current_admin)
 ):
     item_data = {"name": name, "description": description, "price": price}
-    
     if img:
-        # Guardar los bytes directamente (opción recomendada para almacenamiento)
-        image_bytes = await img.read()
-        item_data["img"] = image_bytes
-        
-        # O convertir a base64 si necesitas enviarlo en la respuesta
-        # item_data["img"] = base64.b64encode(image_bytes).decode('utf-8')
+        item_data["img"] = await img.read()
     
     new_item = ItemModel(**item_data)
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     
-    # Para la respuesta, no incluyas la imagen o usa base64
-    response_data = {
-        "id": new_item.id,
-        "name": new_item.name,
-        "description": new_item.description,
-        "price": new_item.price,
-        # "img": base64.b64encode(new_item.img).decode('utf-8') if new_item.img else None
-    }
-    
-    return response_data
+    if new_item.img:
+        new_item.img = base64.b64encode(new_item.img).decode("utf-8")
+    return new_item
 
-
-# endpoint para obtener un solo item dependiedo del id
+# Obtener un ítem por ID
 @items_router.get("/items/{item_id}", response_model=ItemSchema, tags=["items"])
 def get_item(item_id: int, db: Session = Depends(get_db)):
     item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
@@ -57,32 +48,17 @@ def get_item(item_id: int, db: Session = Depends(get_db)):
         item.img = base64.b64encode(item.img).decode("utf-8")
     return item
 
-
-"""
-@items_router.get("/items/", response_model=List[ItemSchema], tags=["items"])
-def read_items(db: Session = Depends(get_db)):
-    items = db.query(ItemModel).all()
-    for item in items:
-        if item.img:
-            item.img = base64.b64encode(item.img).decode("utf-8")
-    return items"""
-
-
+# Listar ítems (paginado)
 @items_router.get("/items/", response_model=PaginatedItems, tags=["items"])
 def read_items(db: Session = Depends(get_db), limit: int = 8, offset: int = 0):
-    # Obtener el número total de items
     total_items = db.query(ItemModel).count()
-    # Obtener los items paginados
     items = db.query(ItemModel).offset(offset).limit(limit).all()
-    # Convertir imágenes a base64
     for item in items:
         if item.img:
             item.img = base64.b64encode(item.img).decode("utf-8")
     return {"items": items, "total_items": total_items}
 
-
-
-# endoint para actualizar un item dependiendo del id
+# Actualizar un ítem
 @items_router.put("/items/{item_id}", response_model=ItemSchema, tags=["items"])
 async def update_item(
     item_id: int,
@@ -90,7 +66,8 @@ async def update_item(
     description: Optional[str] = None,
     price: float = 0.0,
     img: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_admin: UserModel = Depends(get_current_admin)
 ):
     db_item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
     if not db_item:
@@ -102,11 +79,17 @@ async def update_item(
         db_item.img = await img.read()
     db.commit()
     db.refresh(db_item)
+    if db_item.img:
+        db_item.img = base64.b64encode(db_item.img).decode("utf-8")
     return db_item
 
-# endpoint para eliminar un item dependiendo del id
+# Borrar un ítem
 @items_router.delete("/items/{item_id}", tags=["items"])
-def delete_item(item_id: int, db: Session = Depends(get_db)):
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_admin: UserModel = Depends(get_current_admin)
+):
     db_item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")

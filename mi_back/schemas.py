@@ -68,3 +68,6 @@ class Item(ItemBase):
 class PaginatedItems(BaseModel):
     items: List[Item]
     total_items: int
+
+
+

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const useAuth = (mode) => {
   const isLogin = mode === 'login';
   const navigate = useNavigate();
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -15,6 +16,12 @@ const useAuth = (mode) => {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Actualizar user cuando cambie localStorage
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    setUser(storedUser);
+  }, []);
 
   // Manejar cambios en los inputs
   const handleChange = (e) => {
@@ -74,6 +81,7 @@ const useAuth = (mode) => {
             name: formData.name,
             lastname: formData.lastname,
             pass_: formData.pass,
+            is_admin: false,
           };
       console.log('Enviando solicitud:', { endpoint, body });
 
@@ -87,12 +95,17 @@ const useAuth = (mode) => {
       console.log('Respuesta del servidor:', { status: response.status, data });
 
       if (!response.ok) {
-        // Manejar errores de validación de Pydantic
         if (response.status === 422 && data.detail && Array.isArray(data.detail)) {
           const errorMessages = data.detail.map(err => err.msg).join('; ');
           throw new Error(errorMessages || 'Error de validación en los datos');
         }
         throw new Error(data.detail || 'Error en la solicitud');
+      }
+
+      if (isLogin) {
+        // Almacenar usuario en localStorage
+        localStorage.setItem('user', JSON.stringify(data));
+        setUser(data);
       }
 
       // Redirigir al catálogo tras éxito
@@ -104,13 +117,22 @@ const useAuth = (mode) => {
     }
   };
 
+  // Manejar logout
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/');
+  };
+
   return {
+    user,
     formData,
     errors,
     serverError,
     loading,
     handleChange,
     handleSubmit,
+    logout,
   };
 };
 
