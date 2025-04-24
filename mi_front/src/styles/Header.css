@@ -37,3 +37,57 @@
 .logout-button:hover {
   background-color: #b91c1c;
 }
+
+.dropdown-container {
+  position: relative;
+}
+
+.username {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.username:hover {
+  background-color: #2563eb;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 10;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  color: #1e3a8a;
+  text-decoration: none;
+  font-size: 1rem;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item.logout-button {
+  color: #dc2626;
+}
+
+.dropdown-item.logout-button:hover {
+  background-color: #fef2f2;
+}
