@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import Hero from './components/Hero';
 import AuthForm from './components/AuthForm';
 import AdminPanel from './components/AdminPanel';
+import Profile from './components/Profile';
 import './styles/App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/login" element={<AuthForm mode="login" />} />
           <Route path="/register" element={<AuthForm mode="register" />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
       <Footer />

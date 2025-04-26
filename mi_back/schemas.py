@@ -2,7 +2,6 @@ from pydantic import BaseModel, field_validator
 from typing import Optional, List
 import re
 
-
 # Equemas para el usuario
 class UserBase(BaseModel):
     username: str
@@ -41,6 +40,29 @@ class UserCredentials(BaseModel):
     username: str
     pass_: str
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    name: Optional[str] = None
+    lastname: Optional[str] = None
+    pass_: Optional[str] = None
+
+    # Validación opcional para pass_ solo si se proporciona
+    @field_validator('pass_')
+    @classmethod
+    def validate_password_optional(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            if len(v) < 8:
+                raise ValueError("Password must be at least 8 characters long")
+            if not re.search("[a-z]", v):
+                raise ValueError("Password must contain at least one lowercase letter")
+            if not re.search("[A-Z]", v):
+                raise ValueError("Password must contain at least one uppercase letter")
+            if not re.search("[0-9]", v):
+                raise ValueError("Password must contain at least one digit")
+            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+                raise ValueError("Password must contain at least one special character")
+        return v
+
 class User(UserBase):
     id: int
     is_admin: bool  # Nuevo campo para incluir en respuestas
@@ -49,7 +71,6 @@ class User(UserBase):
         from_attributes = True
 
 # Equemas para los items
-
 class ItemBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -68,6 +89,8 @@ class Item(ItemBase):
 class PaginatedItems(BaseModel):
     items: List[Item]
     total_items: int
+
+
 
 
 
