@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Catalog from './components/Catalog';
 import ItemDetail from './components/ItemDetail';
@@ -7,7 +7,19 @@ import Hero from './components/Hero';
 import AuthForm from './components/AuthForm';
 import AdminPanel from './components/AdminPanel';
 import Profile from './components/Profile';
+import Cart from './components/Cart';
+import useAuth from './hooks/useAuth';
 import './styles/App.css';
+
+function RedirectIfAuthenticated({ children }) {
+  const { user } = useAuth();
+  return user ? <Navigate to="/" /> : children;
+}
+
+function ProtectedRoute({ children }) {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+}
 
 function App() {
   return (
@@ -18,8 +30,23 @@ function App() {
           <Route path="/" element={<Hero />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/item/:id" element={<ItemDetail />} />
-          <Route path="/login" element={<AuthForm mode="login" />} />
-          <Route path="/register" element={<AuthForm mode="register" />} />
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthenticated>
+                <AuthForm mode="login" />
+              </RedirectIfAuthenticated>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RedirectIfAuthenticated>
+                <AuthForm mode="register" />
+              </RedirectIfAuthenticated>
+            }
+          />
+          <Route path="/cart" element={<Cart />} /> {/* Eliminado ProtectedRoute */}
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>

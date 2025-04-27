@@ -6,11 +6,25 @@ from passlib.context import CryptContext
 from models import User as UserModel
 from schemas import UserCreate, User as UserSchema, UserCredentials, UserUpdate
 from database import get_db
+import  jwt  # Cambiado de 'jwt' a 'PyJWT'
+from datetime import datetime, timedelta
 
 user_router = APIRouter()
 
 # Configuración para el hashing de contraseñas
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Clave secreta para JWT
+SECRET_KEY = "mi_clave_secreta_123"
+ALGORITHM = "HS256"
+
+# Generar token JWT
+def create_jwt_token(user_id: int) -> str:
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.utcnow() + timedelta(days=1)  # Token expira en 1 día
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 # Endpoints para Users
 # Endpoint para crear un nuevo usuario
@@ -39,8 +53,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 def read_users(db: Session = Depends(get_db)):
     return db.query(UserModel).all()
 
-
-# endoint para actualizar un usuario por ID
+# Endpoint para actualizar un usuario por ID
 @user_router.put("/users/{user_id}", response_model=UserSchema, tags=["users"])
 def update_user(
     user_id: int,
@@ -102,13 +115,13 @@ def update_user(
     if user.lastname is not None:
         db_user.lastname = user.lastname
     if user.pass_:
-        db_user.pass_hash = pwd_context.hash(user.pass_)
+        db_user.pass_ = pwd_context.hash(user.pass_)
 
     db.commit()
     db.refresh(db_user)
     return db_user
 
-# endopoint para eliminar un usuario
+# Endpoint para eliminar un usuario
 @user_router.delete("/users/{user_id}", tags=["users"])
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     """
@@ -122,7 +135,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return {"detail": "User deleted"}
 
 # Endpoint para autenticar un usuario
-@user_router.post("/user/auth/", response_model=UserSchema, tags=["users"])
+@user_router.post("/user/auth/", tags=["users"])
 def authenticate_user(credentials: UserCredentials, db: Session = Depends(get_db)):
     """
     Endpoint POST más seguro para autenticación
@@ -135,6 +148,15 @@ def authenticate_user(credentials: UserCredentials, db: Session = Depends(get_db
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Eliminamos la contraseña hasheada de la respuesta por seguridad
-    db_user.pass_ = None
-    return db_user
+    # Generar token JWT
+    token = create_jwt_token(db_user.id)
+    
+    # Crear respuesta con datos del usuario y token
+    user_response = {
+        "id": db_user.id,
+        "username": db_user.username,
+        "name": db_user.name,
+        "lastname": db_user.lastname,
+        "is_admin": db_user.is_admin
+    }
+    return {"user": user_response, "token": token}

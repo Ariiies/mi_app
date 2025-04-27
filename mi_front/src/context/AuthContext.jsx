@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const useAuth = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -97,23 +96,9 @@ const useAuth = () => {
       }
 
       if (isLogin) {
-        // Almacenar usuario y token en localStorage y actualizar estado
-        localStorage.setItem('user', JSON.stringify({
-          id: data.user.id,
-          username: data.user.username,
-          name: data.user.name,
-          lastname: data.user.lastname,
-          is_admin: data.user.is_admin
-        }));
-        localStorage.setItem('token', data.token);
-        setUser({
-          id: data.user.id,
-          username: data.user.username,
-          name: data.user.name,
-          lastname: data.user.lastname,
-          is_admin: data.user.is_admin
-        });
-        setToken(data.token);
+        // Almacenar usuario en localStorage y actualizar estado
+        localStorage.setItem('user', JSON.stringify(data));
+        setUser(data);
         window.location.reload(); // Forzar recarga tras login
       }
 
@@ -129,15 +114,12 @@ const useAuth = () => {
   // Manejar logout
   const logout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     setUser(null);
-    setToken(null);
     navigate('/');
   };
 
   return {
     user,
-    token,
     formData,
     errors,
     serverError,

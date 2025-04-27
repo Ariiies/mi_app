@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ItemCard from './ItemCard';
+import useCart from '../hooks/useCart';
+import useAuth from '../hooks/useAuth';
 import '../styles/Catalog.css';
 import '../styles/Pagination.css';
 
@@ -11,6 +13,8 @@ function Catalog() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 8;
+  const { addToCart } = useCart();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -53,6 +57,14 @@ function Catalog() {
     }
   };
 
+  const handleAddToCart = (itemId) => {
+    if (!user) {
+      alert('Por favor, inicia sesión para añadir al carrito.');
+      return;
+    }
+    addToCart(itemId, 1);
+  };
+
   if (loading) {
     return <div className="catalog">Cargando...</div>;
   }
@@ -70,9 +82,17 @@ function Catalog() {
       <h2 className="catalog-title">Catálogo de Productos</h2>
       <div className="catalog-grid">
         {items.map((item) => (
-          <Link key={item.id} to={`/item/${item.id}`} className="item-link">
-            <ItemCard name={item.name} price={item.price} image={item.image} />
-          </Link>
+          <div key={item.id} className="item-container">
+            <Link to={`/item/${item.id}`} className="item-link">
+              <ItemCard name={item.name} price={item.price} image={item.image} />
+            </Link>
+            <button
+              className="add-to-cart-button"
+              onClick={() => handleAddToCart(item.id)}
+            >
+              Añadir al carrito
+            </button>
+          </div>
         ))}
       </div>
       <div className="pagination">

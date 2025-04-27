@@ -1,8 +1,15 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional, List
+from datetime import datetime
+from enum import Enum
 import re
 
-# Equemas para el usuario
+# Enum para estados del carrito
+class CartStatus(str, Enum):
+    active = "active"
+    completed = "completed"
+
+# Esquemas para el usuario
 class UserBase(BaseModel):
     username: str
     name: str
@@ -70,7 +77,7 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
-# Equemas para los items
+# Esquemas para los items
 class ItemBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -90,7 +97,42 @@ class PaginatedItems(BaseModel):
     items: List[Item]
     total_items: int
 
+# Esquemas para el carrito
+class CartBase(BaseModel):
+    status: CartStatus = CartStatus.active
 
+class CartCreate(CartBase):
+    pass
 
+class Cart(CartBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    items: List["CartItem"] = []
 
+    class Config:
+        from_attributes = True
 
+# Esquemas para los ítems del carrito
+class CartItemBase(BaseModel):
+    item_id: int
+    quantity: int
+
+    @field_validator('quantity')
+    @classmethod
+    def validate_quantity(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("Quantity must be greater than 0")
+        return v
+
+class CartItemCreate(CartItemBase):
+    pass
+
+class CartItem(CartItemBase):
+    id: int
+    cart_id: int
+    added_at: datetime
+    item: Item
+
+    class Config:
+        from_attributes = True

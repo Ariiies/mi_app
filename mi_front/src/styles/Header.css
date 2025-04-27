@@ -14,6 +14,49 @@
   color: white;
 }
 
+.header-title:active {
+  color: #1e40af;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cart-button {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.cart-button:hover {
+  background-color: #1e40af;
+}
+
+.cart-button:active {
+  background-color: #1e40af;
+}
+
+.cart-icon {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+.nav a {
+  text-decoration: none;
+}
+
 .sign-in-button,
 .logout-button {
   background-color: #2563eb;
