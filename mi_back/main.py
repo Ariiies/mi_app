@@ -17,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Crear tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 

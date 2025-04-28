@@ -5,6 +5,7 @@ from models import Cart as CartModel, CartItem as CartItemModel, User
 from schemas import Cart as CartSchema, CartItem as CartItemSchema, CartItemCreate
 import jwt
 from database import get_db
+import base64
 
 carts_router = APIRouter(prefix="/carts", tags=["carts"])
 
@@ -42,6 +43,14 @@ def get_cart(current_user: User = Depends(get_current_user), db: Session = Depen
         db.add(cart)
         db.commit()
         db.refresh(cart)
+    
+    # Convertir img de bytes a base64 string si es necesario
+    for cart_item in cart.items:
+        if cart_item.item.img and isinstance(cart_item.item.img, bytes):
+            cart_item.item.img = base64.b64encode(cart_item.item.img).decode('utf-8')
+        elif not cart_item.item.img or not isinstance(cart_item.item.img, str):
+            cart_item.item.img = None
+    
     return cart
 
 # Añadir un item al carrito
@@ -66,6 +75,11 @@ def add_item_to_cart(
         existing_item.quantity += item.quantity
         db.commit()
         db.refresh(existing_item)
+        # Convertir img de bytes a base64
+        if existing_item.item.img and isinstance(existing_item.item.img, bytes):
+            existing_item.item.img = base64.b64encode(existing_item.item.img).decode('utf-8')
+        elif not existing_item.item.img or not isinstance(existing_item.item.img, str):
+            existing_item.item.img = None
         return existing_item
     
     # Crear nuevo item en el carrito
@@ -73,6 +87,11 @@ def add_item_to_cart(
     db.add(cart_item)
     db.commit()
     db.refresh(cart_item)
+    # Convertir img de bytes a base64
+    if cart_item.item.img and isinstance(cart_item.item.img, bytes):
+        cart_item.item.img = base64.b64encode(cart_item.item.img).decode('utf-8')
+    elif not cart_item.item.img or not isinstance(cart_item.item.img, str):
+        cart_item.item.img = None
     return cart_item
 
 # Eliminar un item del carrito

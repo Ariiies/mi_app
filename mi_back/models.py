@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 import enum
 from datetime import datetime
+import base64
 
 # Enum para estados del carrito
 class CartStatus(str, enum.Enum):
@@ -28,6 +29,14 @@ class Item(Base):
     price = Column(Float, nullable=False)
     img = Column(String(255))  # Ajustado a VARCHAR(255) para coincidir con la base de datos
 
+    cart_items = relationship("CartItem", back_populates="item")
+
+    def as_dict(self):
+        result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        if self.img and isinstance(self.img, bytes):
+            result['img'] = base64.b64encode(self.img).decode('utf-8')
+        return result
+
 class Cart(Base):
     __tablename__ = "carts"
     id = Column(Integer, primary_key=True, index=True)
@@ -47,4 +56,4 @@ class CartItem(Base):
     added_at = Column(DateTime, default=datetime.utcnow)
     
     cart = relationship("Cart", back_populates="items")
-    item = relationship("Item")
+    item = relationship("Item", back_populates="cart_items")
