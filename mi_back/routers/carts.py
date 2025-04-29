@@ -44,12 +44,12 @@ def get_cart(current_user: User = Depends(get_current_user), db: Session = Depen
         db.commit()
         db.refresh(cart)
     
-    # Convertir img de bytes a base64 string si es necesario
+    # Asegurarse de que las imágenes sean strings válidos
     for cart_item in cart.items:
         if cart_item.item.img and isinstance(cart_item.item.img, bytes):
             cart_item.item.img = base64.b64encode(cart_item.item.img).decode('utf-8')
-        elif not cart_item.item.img or not isinstance(cart_item.item.img, str):
-            cart_item.item.img = None
+        else:
+            cart_item.item.img = ""  # Asegúrate de asignar un string vacío si no hay imagen
     
     return cart
 
@@ -75,11 +75,12 @@ def add_item_to_cart(
         existing_item.quantity += item.quantity
         db.commit()
         db.refresh(existing_item)
-        # Convertir img de bytes a base64
+
         if existing_item.item.img and isinstance(existing_item.item.img, bytes):
             existing_item.item.img = base64.b64encode(existing_item.item.img).decode('utf-8')
-        elif not existing_item.item.img or not isinstance(existing_item.item.img, str):
-            existing_item.item.img = None
+        else:
+            existing_item.item.img = ""  # Asignar string vacío si no hay imagen
+
         return existing_item
     
     # Crear nuevo item en el carrito
@@ -87,11 +88,12 @@ def add_item_to_cart(
     db.add(cart_item)
     db.commit()
     db.refresh(cart_item)
-    # Convertir img de bytes a base64
+
     if cart_item.item.img and isinstance(cart_item.item.img, bytes):
         cart_item.item.img = base64.b64encode(cart_item.item.img).decode('utf-8')
-    elif not cart_item.item.img or not isinstance(cart_item.item.img, str):
-        cart_item.item.img = None
+    else:
+        cart_item.item.img = ""  # Asignar string vacío si no hay imagen
+
     return cart_item
 
 # Eliminar un item del carrito

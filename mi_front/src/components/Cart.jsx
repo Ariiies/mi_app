@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import useCart from '../hooks/useCart';
 import useAuth from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
@@ -6,6 +7,34 @@ import '../styles/Cart.css';
 function Cart() {
   const { cart, removeFromCart, error } = useCart();
   const { user } = useAuth();
+  const [itemsWithImages, setItemsWithImages] = useState([]);
+
+  useEffect(() => {
+    const fetchItemsWithImages = async () => {
+      if (!cart || !cart.items) return;
+
+      const promises = cart.items.map(async (cartItem) => {
+        try {
+          const res = await fetch(`http://localhost:8000/items/${cartItem.item_id}`);
+          const data = await res.json();
+          return {
+            ...cartItem,
+            item: {
+              ...data,
+              img: data.img ? `data:image/jpeg;base64,${data.img}` : null
+            }
+          };
+        } catch (e) {
+          return { ...cartItem, item: { ...cartItem.item, img: null } };
+        }
+      });
+
+      const results = await Promise.all(promises);
+      setItemsWithImages(results);
+    };
+
+    fetchItemsWithImages();
+  }, [cart]);
 
   if (!user) {
     return (
@@ -41,22 +70,17 @@ function Cart() {
     <div className="cart">
       <h2>Carrito</h2>
       <ul className="cart-items">
-        {cart.items.map((cartItem) => {
-          // Depuración: Mostrar valor de img en consola
-          console.log('Cart item img:', cartItem.item.img);
-          const imageSrc = cartItem.item.img
-            ? `data:image/jpeg;base64,${cartItem.item.img}`
-            : 'https://via.placeholder.com/150';
-          
+        {itemsWithImages.map((cartItem) => {
+          const imageSrc = cartItem.item.img || 'https://via.placeholder.com/150';
           return (
             <li key={cartItem.item_id} className="cart-item">
               <img
                 src={imageSrc}
                 alt={cartItem.item.name}
-                className="cart-item-image"
+                className="cart-item-img"
                 onError={(e) => {
-                  e.target.style.display = 'none'; // Oculta la imagen si falla
-                  e.target.nextSibling.style.display = 'block'; // Muestra placeholder
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
                 }}
               />
               <div className="cart-item-placeholder" style={{ display: 'none' }}>
@@ -83,3 +107,4 @@ function Cart() {
 }
 
 export default Cart;
+
