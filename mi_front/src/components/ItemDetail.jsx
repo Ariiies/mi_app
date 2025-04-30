@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import useCart from '../hooks/useCart';
+import useAuth from '../hooks/useAuth'; 
 import '../styles/ItemDetail.css';
 
 function ItemDetail() {
   // Obtenemos el parámetro 'id' de la URL (e.g., /item/1 → id = "1")
   const { id } = useParams();
-  
+  const { addToCart } = useCart();
+  const { user } = useAuth(); 
   // Estado para almacenar los datos del item obtenidos del backend, loading y error
   // 'item' contendrá los datos del item, 'loading' indica si se está cargando y 'error' para manejar errores
   const [item, setItem] = useState(null);
@@ -55,10 +58,17 @@ function ItemDetail() {
       </div>
     );
   }
+  const handleAddToCart = (itemId) => {
+    if (!user) {
+      alert('Por favor, inicia sesión para añadir al carrito.');
+      return;
+    }
+    addToCart(itemId, 1);
+  };
   // Si hay datos, renderizamos la vista completa del item
   return (
     <div className="item-detail">
-      <Link to="/" className="back-button">Regresar</Link>
+      <Link to="/catalog" className="back-button">Regresar</Link>
       <div className="item-detail-content">
         <img 
           src={item.img || 'https://via.placeholder.com/300'} 
@@ -70,7 +80,10 @@ function ItemDetail() {
           <p className="item-detail-price">${item.price}</p>
           <p className="item-detail-description">{item.description}</p>
           <div className="item-detail-buttons">
-            <button className="add-to-cart-button">Agregar al Carrito</button>
+            <button 
+            className="add-to-cart-button"
+            onClick={() => handleAddToCart(item.id)}
+            >Agregar al Carrito</button>
             <button className="buy-now-button">Comprar Ahora</button>
           </div>
         </div>
