@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from models import User as UserModel
 from schemas import UserCreate, User as UserSchema, UserCredentials, UserUpdate
 from database import get_db
-import  jwt  # Cambiado de 'jwt' a 'PyJWT'
+import  jwt  
 from datetime import datetime, timedelta
 
 user_router = APIRouter()
