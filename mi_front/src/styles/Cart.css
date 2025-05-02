@@ -112,4 +112,19 @@
   .checkout-button:hover {
     background-color: #059669;
   }
+  .go-to-checkout-button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #10b981;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 6px;
+    display: inline-block;
+    transition: background-color 0.2s;
+  }
+  
+  .go-to-checkout-button:hover {
+    background-color: #059669;
+  }
   

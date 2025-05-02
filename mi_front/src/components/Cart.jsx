@@ -106,7 +106,9 @@ function Cart() {
   <div className="cart-summary">
     <p>Total de productos: {itemsWithImages.reduce((acc, item) => acc + item.quantity, 0)}</p>
     <p>Total a pagar: ${itemsWithImages.reduce((acc, item) => acc + (item.item.price * item.quantity), 0).toFixed(2)}</p>
-    <button className="checkout-button">Ir a pagar</button>
+    <Link className="go-to-checkout-button" to="/Checkout" >
+    Ir a pagar
+    </Link>
   </div>
 )}
     </div>
