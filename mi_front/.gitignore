@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# chek key
+src/components/checkKey.jsx
+src/hooks/useKey.js

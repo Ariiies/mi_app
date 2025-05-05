@@ -10,6 +10,7 @@ import Profile from './components/Profile';
 import Cart from './components/Cart';
 import useAuth from './hooks/useAuth';
 import Checkout from './components/Checkout';
+import CheckKey from './components/CheckKey';
 import './styles/App.css';
 
 function RedirectIfAuthenticated({ children }) {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/item/:id" element={<ItemDetail />} />
           <Route path="/Checkout" element={<Checkout />} />
+          <Route path="/CheckKey" element={<CheckKey />} />
           <Route
             path="/login"
             element={
