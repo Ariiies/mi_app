@@ -5,6 +5,7 @@ from database import engine, Base
 from routers.users import user_router
 from routers.items import items_router
 from routers.carts import carts_router
+from routers.payments import payments_router
 import uvicorn, stripe, os
 from dotenv import load_dotenv
 
@@ -32,7 +33,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(user_router)
 app.include_router(items_router)
 app.include_router(carts_router)
-
+app.include_router(payments_router)
 # Endpoint raíz
 @app.get("/", tags=["main"], status_code=200, response_description="Everything okay")
 async def root():

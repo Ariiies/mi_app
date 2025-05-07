@@ -20,6 +20,7 @@ class User(Base):
     is_admin = Column(Boolean, default=False, nullable=False)
 
     carts = relationship("Cart", back_populates="user")
+    payments = relationship("Payment", back_populates="user")
 
 class Item(Base):
     __tablename__ = "items"
@@ -27,7 +28,7 @@ class Item(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     price = Column(Float, nullable=False)
-    img = Column(String(255))  # Ajustado a VARCHAR(255) para coincidir con la base de datos
+    img = Column(String(255))
 
     cart_items = relationship("CartItem", back_populates="item")
 
@@ -43,9 +44,10 @@ class Cart(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     status = Column(Enum(CartStatus), default=CartStatus.active, nullable=False)
-    
+
     user = relationship("User", back_populates="carts")
     items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="cart")  # Nueva relación
 
 class CartItem(Base):
     __tablename__ = "cart_items"
@@ -54,6 +56,19 @@ class CartItem(Base):
     item_id = Column(Integer, ForeignKey("items.id", ondelete="RESTRICT"), nullable=False)
     quantity = Column(Integer, nullable=False)
     added_at = Column(DateTime, default=datetime.utcnow)
-    
+
     cart = relationship("Cart", back_populates="items")
     item = relationship("Item", back_populates="cart_items")
+
+class Payment(Base):
+    __tablename__ = "payments"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)  # Nuevo campo
+    amount_total = Column(Float, nullable=False)
+    currency = Column(String, nullable=False)
+    stripe_session_id = Column(String, nullable=False, unique=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="payments")
+    cart = relationship("Cart", back_populates="payments")  # Nueva relación

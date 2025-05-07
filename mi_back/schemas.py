@@ -136,3 +136,19 @@ class CartItem(CartItemBase):
 
     class Config:
         from_attributes = True
+
+class PaymentBase(BaseModel):
+    cart_id: Optional[int] = None
+    stripe_session_id: str
+    amount_total: float
+    currency: str = "usd"
+
+class PaymentCreate(PaymentBase):
+    pass
+
+class Payment(PaymentBase):
+    id: int
+    paid_at: datetime
+
+    class Config:
+        from_attributes = True
